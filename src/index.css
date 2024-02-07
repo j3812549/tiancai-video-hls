@@ -1,0 +1,121 @@
+.tiancai9-video-box {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #000000;
+  min-width: 280px;
+}
+
+.tiancai9-video-box .tiancai9-video-main {
+  width: 100%;
+  height: 100%;
+}
+
+.tiancai9-video-box .tiancai9-video-warp {
+  height: 100%;
+  width: 100%;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, .4);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+}
+
+
+.tiancai9-video-box .tiancai9-video-warp .container .fullscreen {
+  width: 2em;
+  height: 2em;
+  background: yellow;
+  position: absolute;
+  right: .6em;
+  bottom: .6em;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .btn {
+  width: 1.5em;
+  height: 1.5em;
+  background: yellow;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .fullscreen {
+  position: absolute;
+  right: .6em;
+  bottom: .6em;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .toggle {
+  position: absolute;
+  left: .6em;
+  bottom: .6em;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .process {
+  position: absolute;
+  width: calc(100% - 7em);
+  height: 1.5em;
+  left: 3.4em;
+  bottom: .6em;
+  display: flex;
+  align-items: center;
+  color: #eee;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .process .length {
+  height: 100%;
+  width: calc(100% - 4em);
+  margin-right: .4em;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .process .length .backgroundLength {
+  width: 100%;
+  height: .2em;
+  background: rgba(255, 255, 255, .4);
+  position: absolute;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .process .length .markLength {
+  height: .2em;
+  width: 40%;
+  background: #409eff;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .process .length .mark {
+  height: .2em;
+  width: .2em;
+  background: #fff;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .process .currentTime,
+.tiancai9-video-box .tiancai9-video-warp .container .process .secondary,
+.tiancai9-video-box .tiancai9-video-warp .container .process .duration {
+  font-size: .6em;
+}
+
+.tiancai9-video-box .tiancai9-video-warp .container .process .secondary {
+  margin: 0 .2em;
+}
+
+
+.tiancai9-video-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.tiancai9-video-fullscreen .tiancai9-video-warp {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  transform-origin: top left;
+  transform: rotate(90deg) translate(-0%, -100%);
+}
