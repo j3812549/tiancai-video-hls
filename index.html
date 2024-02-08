@@ -16,7 +16,7 @@
 
   #tiancai9-video {
     width: 100%;
-    height: 240px;
+    height: 400px;
   }
 
   @media(max-width:400px) {
@@ -35,6 +35,7 @@
   // import TiancaiVideoHls from './dist/tiancai-video-hls.js'
   // import './dist/style.css'
   const video = new TiancaiVideoHls({
+    box: document.getElementById('tiancai9-video'),
     sources: ['https://c3.monidai.com/20231119/JqT4DANw/index.m3u8', 'https://c3.monid43ai.com/202', 'https://c354.mon424idai.com/202']
   })
   window.video = video

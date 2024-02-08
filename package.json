@@ -1,10 +1,10 @@
 {
-  "name": "vue-keep-cache-scroll-hooks",
+  "name": "tiancai-video-hls",
   "version": "1.0.1",
-  "description": "用于缓存vue3的滚动条位子的hooks插件",
+  "description": "基于原生js实现的hls视频播放器，可播放m3u8视频",
   "keywords": [
-    "vue-keep-cache-scroll-hooks",
-    "用于缓存vue3的滚动条位子的hooks插件"
+    "tiancai-video-hls",
+    "基于原生js实现的hls视频播放器，可播放m3u8视频"
   ],
   "author": "380012546@qq.com",
   "main": "index.js",
