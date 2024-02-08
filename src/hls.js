@@ -8,7 +8,10 @@ class Instance {
     error: () => { },
     succee: () => { },
     onProgress: () => { },
-    onPlaying: () => { }
+    onPlaying: () => { },
+    onEnded: () => { },
+    onPause: () => { },
+    onPlay: () => { },
   }
   constructor(options = {}) {
     this.#video = options.el
@@ -16,6 +19,9 @@ class Instance {
     this.#handle.error = options.handle?.error
     this.#handle.succee = options.handle?.succee
     this.#handle.onProgress = options.handle?.onProgress
+    this.#handle.onEnded = options.handle?.onEnded
+    this.#handle.onPause = options.handle?.onPause
+    this.#handle.onPlay = options.handle?.onPlay
     this.#handle.onPlaying = options.handle?.onPlaying
     this.#init()
   }
@@ -61,15 +67,31 @@ class Instance {
 
   onHandle() {
     const self = this
+
     this.#video.addEventListener("playing", function () {
-      // do something
-      console.log('duration', this.duration, self.#handle.onPlaying)
+      console.log('===playing')
       self.#handle.onPlaying({ duration: this.duration, video: this })
     })
 
     this.#video.addEventListener("timeupdate", function () {
       self.#handle.onProgress({ currentTime: this.currentTime, video: this })
     })
+
+    this.#video.addEventListener("ended", function () {
+      console.log('===ended')
+      self.#handle.onEnded({ video: this })
+    })
+
+    this.#video.addEventListener("pause", function () {
+      console.log('===pause')
+      self.#handle.onPause({ video: this })
+    })
+
+    this.#video.addEventListener("play", function () {
+      console.log('===play')
+      self.#handle.onPlay({ video: this })
+    })
+
   }
 }
 
