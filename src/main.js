@@ -33,6 +33,7 @@ class Main {
   showContainer = false
   #watchData = {} // 管理监听属性
 
+  #onShowContainerTime = null
   #isMobile = checkedMobile()
   #box = null
   #warp = null
@@ -105,6 +106,7 @@ class Main {
 
     watchSetFnc('showContainer', v => {
       this.#container.warp.style.display = v ? 'block' : 'none'
+      v ? this.#setTimeoutByShowContainer() : this.#clearTimeoutByShowContainer()
     })
 
     watchSetFnc('isFullscreen', v => {
@@ -161,7 +163,6 @@ class Main {
   }
 
   #checkedStatus() {
-    console.log('this.isLoading', this.isLoading)
     return !this.isLoading
   }
 
@@ -189,6 +190,7 @@ class Main {
   #onPlaying({ duration }) {
     this.#duration = duration
     this.isLoading = false
+    this.showContainer = true
   }
 
   #onSuccee() {
@@ -306,6 +308,7 @@ class Main {
       self.#processMark.start = x
       self.#processMark.end = x
       self.#slideProcess(x)
+      self.#clearTimeoutByShowContainer()
       e.stopPropagation() && e.preventDefault()
     }
 
@@ -322,26 +325,29 @@ class Main {
       self.#processAutoStatus = true
       const x = self.#processMark.end
       self.#slideProcess(x, true)
+      self.#setTimeoutByShowContainer()
       e.stopPropagation() && e.preventDefault()
     }
 
     // 滑动进度条 slideProcessbar
-    let diff_x = null
-    let start_x = null
+    let pre_x = null
+    let next_x = null
     this.#container.process.length.addEventListener("touchstart", function (e) {
-      diff_x = e.changedTouches[0].clientX
-      console.log('e', e)
-      start_x = self.#container.process.markLength.clientWidth
+      self.#processAutoStatus = false
+      self.#clearTimeoutByShowContainer()
+      pre_x = e.changedTouches[0].clientX
     }, false)
     this.#container.process.length.addEventListener("touchend", function (e) {
-      console.log('e', e)
-      console.log('2222')
+      self.#slideProcess(next_x, true)
+      self.#processAutoStatus = true
     }, false)
     this.#container.process.length.addEventListener("touchmove", function (e) {
-      console.log('33')
-      const x = e.changedTouches[0].clientX - start_x + start_x
-      console.log('x', x)
-      self.#slideProcess(x)
+      const x = e.changedTouches[0].clientX
+      const diff_x = x - pre_x - self.#container.process.warp.offsetLeft
+      pre_x = x
+      next_x = x + diff_x
+      self.#slideProcess(next_x)
+      self.#setTimeoutByShowContainer()
     }, false)
 
   }
@@ -350,7 +356,7 @@ class Main {
     const max = this.#container.process.backgroundLength.clientWidth
     const ratio = x / max
     const value = ratio * this.#duration
-    this.#container.process.markLength.style.width = x + 'px'
+    this.#container.process.markLength.style.width = x >= max ? max : x + 'px'
     if (!triggerStatus) return
     this.isLoading = true
     Utils.debounce(() => {
@@ -373,6 +379,16 @@ class Main {
     this.isLoading = true
     this.#instance.destroy()
     this.#createVideo(this.#sources[this.#index])
+  }
+
+  #setTimeoutByShowContainer() {
+    if (this.#onShowContainerTime) clearTimeout(this.#onShowContainerTime)
+    this.#onShowContainerTime = setTimeout(() => {
+      this.showContainer = false
+    }, 10000)
+  }
+  #clearTimeoutByShowContainer() {
+    if (this.#onShowContainerTime) clearTimeout(this.#onShowContainerTime)
   }
 }
 
