@@ -23,6 +23,7 @@ class Instance {
     this.#handle.onPause = options.handle?.onPause
     this.#handle.onPlay = options.handle?.onPlay
     this.#handle.onPlaying = options.handle?.onPlaying
+    this.#handle.onCanplay = options.handle?.onCanplay
     this.#init()
   }
 
@@ -52,7 +53,6 @@ class Instance {
     const self = this
     this.#hls.on(Hls.Events.MANIFEST_PARSED, () => {
       self.#handle.succee && self.#handle.succee({ video: this })
-      self.#video.play()
       self.onHandle()
     })
 
@@ -67,6 +67,12 @@ class Instance {
 
   onHandle() {
     const self = this
+
+    this.#video.addEventListener("canplay", function () {
+      console.log('===canplay')
+      self.#handle.onCanplay({ video: this, duration: this.duration, currentTime: this.currentTime })
+    })
+
 
     this.#video.addEventListener("playing", function () {
       console.log('===playing')

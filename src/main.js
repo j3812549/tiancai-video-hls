@@ -27,7 +27,7 @@ function checkedMobile() {
 
 class Main {
   isFullscreen = false
-  isPlay = true
+  isPlay = false
   isLoading = true
   isError = false
   showContainer = false
@@ -46,6 +46,7 @@ class Main {
     start: 0,
     end: 0
   }
+  #autoPlay = false
   #duration // 总时长
   #currentTime // 播放的进度时长
   #container = { // dom容器
@@ -65,9 +66,21 @@ class Main {
       currentTime: null
     } // 进度条
   }
+  #onHandle = {
+    onError: () => { },
+    onSuccee: () => { },
+    onProgress: () => { },
+    onPlaying: () => { },
+    onEnded: () => { },
+    onPause: () => { },
+    onPlay: () => { },
+    onCanplay: () => { }
+  }
   constructor(options = {}) {
     this.#box = options.box || document.getElementById('tiancai9-video')
     this.#sources = options.sources
+    this.#autoPlay = options.autoPlay
+    this.#onHandle = { ...this.#onHandle, ...options.onHandle }
     this.#init()
     this.#watch()
   }
@@ -108,40 +121,6 @@ class Main {
       this.#container.warp.style.display = v ? 'block' : 'none'
       v ? this.#setTimeoutByShowContainer() : this.#clearTimeoutByShowContainer()
     })
-
-    watchSetFnc('isFullscreen', v => {
-      if (this.#isMobile) {
-        if (v) {
-          const width = window.innerHeight
-          const height = window.innerWidth
-          this.#warp.style.width = width + 'px'
-          this.#warp.style.height = height + 'px'
-          this.#box.classList.add('tiancai9-video-fullscreen')
-        } else {
-          this.#warp.style.width = ''
-          this.#warp.style.height = ''
-          this.#box.classList.remove('tiancai9-video-fullscreen')
-        }
-      } else {
-        const el = this.#video
-        var rfs =
-          el.requestFullScreen ||
-          el.webkitRequestFullScreen ||
-          el.mozRequestFullScreen ||
-          el.msRequestFullScreen,
-          wscript
-        if (typeof rfs != "undefined" && rfs) {
-          rfs.call(el)
-          return
-        }
-        if (typeof window.ActiveXObject != "undefined") {
-          wscript = new ActiveXObject("WScript.Shell")
-          if (wscript) {
-            wscript.SendKeys("{F11}")
-          }
-        }
-      }
-    })
   }
 
   #createVideo(url) {
@@ -151,11 +130,12 @@ class Main {
       handle: {
         error: v => this.#onError(v),
         succee: v => this.#onSuccee(v),
-        onPlaying: v => this.#onPlaying(v),
-        onProgress: v => this.#onProgress(v),
-        onPlay: v => this.#onPlay(v),
-        onPause: v => this.#onPause(v),
-        onEnded: v => this.#onEnded(v),
+        onPlaying: v => this.#onPlaying(v) & this.#onHandle.onPlaying(v),
+        onProgress: v => this.#onProgress(v) & this.#onHandle.onProgress(v),
+        onPlay: v => this.#onPlay(v) & this.#onHandle.onPlay(v),
+        onPause: v => this.#onPause(v) & this.#onHandle.onPause(v),
+        onEnded: v => this.#onEnded(v) & this.#onHandle.onEnded(v),
+        onCanplay: v => this.#onCanplay(v) & this.#onHandle.onCanplay(v) & this.#onSuccee(v),
       }
     })
 
@@ -164,6 +144,20 @@ class Main {
 
   #checkedStatus() {
     return !this.isLoading
+  }
+
+  #onCanplay({ duration, currentTime }) {
+    if (this.#autoPlay) {
+      this.#instance.play()
+      this.isPlay = true
+      this.#container.toggle.classList.add('pause-icon')
+    }
+    this.isLoading = false
+    this.showContainer = true
+    this.#currentTime = currentTime
+    this.#duration = duration
+    this.#container.process.duration.innerText = formatterTime(this.#duration)
+    this.#container.process.currentTime.innerText = formatterTime(currentTime)
   }
 
   #onPause() {
@@ -188,9 +182,6 @@ class Main {
   }
 
   #onPlaying({ duration }) {
-    this.#duration = duration
-    this.isLoading = false
-    this.showContainer = true
   }
 
   #onSuccee() {
@@ -201,6 +192,7 @@ class Main {
     if (this.#index >= this.#sources.length - 1) {
       this.isError = true
       this.isLoading = false
+      this.#onHandle.onError()
       return
     }
     this.#instance.destroy()
@@ -230,7 +222,7 @@ class Main {
 
     this.#container.warp = createElement('container', 'div', this.#warp)
     this.#container.fullscreen = createElement(['fullscreen', 'btn', 'fullscreen-icon'], 'div', this.#container.warp)
-    this.#container.toggle = createElement(['toggle', 'btn'], 'div', this.#container.warp)
+    this.#container.toggle = createElement(['toggle', 'btn', 'play-icon'], 'div', this.#container.warp)
     this.#container.loading = createElement('loading', 'div', this.#warp)
     createElement('loading-icon', 'div', this.#container.loading)
 
@@ -254,7 +246,6 @@ class Main {
 
     // 错误重试
     this.#container.error.onclick = function (e) {
-      console.log(3333333)
       self.replay()
       e.stopPropagation()
     }
@@ -289,9 +280,9 @@ class Main {
     this.#container.fullscreen.onclick = function (e) {
       if (!self.#checkedStatus()) return
       if (self.isFullscreen === false) {
-        self.isFullscreen = true
+        self.openFullscreen()
       } else {
-        self.isFullscreen = false
+        self.exitFullscreen()
       }
       e.stopPropagation()
     }
@@ -333,15 +324,19 @@ class Main {
     let pre_x = null
     let next_x = null
     this.#container.process.length.addEventListener("touchstart", function (e) {
+      console.log('touchstart')
       self.#processAutoStatus = false
       self.#clearTimeoutByShowContainer()
       pre_x = e.changedTouches[0].clientX
+      next_x = e.changedTouches[0].clientX - self.#container.process.warp.offsetLeft
     }, false)
     this.#container.process.length.addEventListener("touchend", function (e) {
+      console.log('touchend')
       self.#slideProcess(next_x, true)
       self.#processAutoStatus = true
     }, false)
     this.#container.process.length.addEventListener("touchmove", function (e) {
+      console.log('touchmove')
       const x = e.changedTouches[0].clientX
       const diff_x = x - pre_x - self.#container.process.warp.offsetLeft
       pre_x = x
@@ -362,6 +357,80 @@ class Main {
     Utils.debounce(() => {
       this.#instance.setCurrentTime(value)
     }, 200)
+  }
+
+  openFullscreen() {
+    this.isFullscreen = true
+    if (this.#isMobile) {
+      const width = window.innerHeight
+      const height = window.innerWidth
+      this.#warp.style.width = width + 'px'
+      this.#warp.style.height = height + 'px'
+      this.#box.classList.add('tiancai9-video-fullscreen')
+    } else {
+      const el = this.#video
+      var rfs =
+        el.requestFullScreen ||
+        el.webkitRequestFullScreen ||
+        el.mozRequestFullScreen ||
+        el.msRequestFullScreen,
+        wscript
+      if (typeof rfs != "undefined" && rfs) {
+        rfs.call(el)
+        return
+      }
+      if (typeof window.ActiveXObject != "undefined") {
+        wscript = new ActiveXObject("WScript.Shell")
+        if (wscript) {
+          wscript.SendKeys("{F11}")
+        }
+      }
+    }
+  }
+
+  exitFullscreen() {
+    this.isFullscreen = false
+    if (this.#isMobile) {
+      this.#warp.style.width = ''
+      this.#warp.style.height = ''
+      this.#box.classList.remove('tiancai9-video-fullscreen')
+    } else {
+      var el = document,
+        cfs =
+          el.cancelFullScreen ||
+          el.webkitCancelFullScreen ||
+          el.mozCancelFullScreen ||
+          el.exitFullScreen,
+        wscript
+      if (typeof cfs != "undefined" && cfs) {
+        cfs.call(el)
+        return
+      }
+      if (typeof window.ActiveXObject != "undefined") {
+        wscript = new ActiveXObject("WScript.Shell")
+        if (wscript != null) {
+          wscript.SendKeys("{F11}")
+        }
+      }
+    }
+  }
+
+  destroy() {
+    this.#index = 0
+    this.isError = false
+    this.isLoading = false
+    this.#instance.destroy()
+    this.#box.innerHTML = ''
+  }
+
+  play() {
+    this.isPlay = true
+    this.#instance.play()
+  }
+
+  pause() {
+    this.isPlay = false
+    this.#instance.pause()
   }
 
   reinit() {
