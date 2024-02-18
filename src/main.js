@@ -15,6 +15,16 @@ const formatterTime = v => {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
 }
 
+function checkedMobile() {
+  if (window.navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)) {
+    return true // 移动端
+  } else {
+    return false // PC端
+  }
+}
+
+
+
 class Main {
   isFullscreen = false
   isPlay = true
@@ -23,6 +33,7 @@ class Main {
   showContainer = false
   #watchData = {} // 管理监听属性
 
+  #isMobile = checkedMobile()
   #box = null
   #warp = null
   #instance = null
@@ -97,16 +108,36 @@ class Main {
     })
 
     watchSetFnc('isFullscreen', v => {
-      if (v) {
-        const width = window.innerHeight
-        const height = window.innerWidth
-        this.#warp.style.width = width + 'px'
-        this.#warp.style.height = height + 'px'
-        this.#box.classList.add('tiancai9-video-fullscreen')
+      if (this.#isMobile) {
+        if (v) {
+          const width = window.innerHeight
+          const height = window.innerWidth
+          this.#warp.style.width = width + 'px'
+          this.#warp.style.height = height + 'px'
+          this.#box.classList.add('tiancai9-video-fullscreen')
+        } else {
+          this.#warp.style.width = ''
+          this.#warp.style.height = ''
+          this.#box.classList.remove('tiancai9-video-fullscreen')
+        }
       } else {
-        this.#warp.style.width = ''
-        this.#warp.style.height = ''
-        this.#box.classList.remove('tiancai9-video-fullscreen')
+        const el = this.#video
+        var rfs =
+          el.requestFullScreen ||
+          el.webkitRequestFullScreen ||
+          el.mozRequestFullScreen ||
+          el.msRequestFullScreen,
+          wscript
+        if (typeof rfs != "undefined" && rfs) {
+          rfs.call(el)
+          return
+        }
+        if (typeof window.ActiveXObject != "undefined") {
+          wscript = new ActiveXObject("WScript.Shell")
+          if (wscript) {
+            wscript.SendKeys("{F11}")
+          }
+        }
       }
     })
   }
