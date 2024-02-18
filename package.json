@@ -1,6 +1,6 @@
 {
   "name": "tiancai-video-hls",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "基于原生js实现的hls视频播放器，可播放m3u8视频",
   "keywords": [
     "tiancai-video-hls",

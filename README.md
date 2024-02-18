@@ -6,6 +6,10 @@ npm i tiancai-video-hls --save
 
 基于原生js实现的hls视频播放器，可播放m3u8视频
 
+#### Demo:
+
+https://j3812549.github.io/pages/index.html#/tiancaivideohls
+
 使用示例：
 
 ```
