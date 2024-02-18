@@ -19,6 +19,7 @@ class Main {
   isFullscreen = false
   isPlay = true
   isLoading = true
+  isError = false
   showContainer = false
   #watchData = {} // 管理监听属性
 
@@ -37,6 +38,7 @@ class Main {
   #currentTime // 播放的进度时长
   #container = { // dom容器
     warp: null,
+    error: null,
     loading: null,
     fullscreen: null,
     loudness: null, // 音量键
@@ -86,6 +88,10 @@ class Main {
       this.#container.loading.style.display = v ? 'block' : 'none'
     })
 
+    watchSetFnc('isError', v => {
+      this.#container.error.style.display = v ? 'block' : 'none'
+    })
+
     watchSetFnc('showContainer', v => {
       this.#container.warp.style.display = v ? 'block' : 'none'
     })
@@ -119,6 +125,8 @@ class Main {
         onEnded: v => this.#onEnded(v),
       }
     })
+
+    this.#instance.setCurrentTime(this.#currentTime || 0)
   }
 
   #checkedStatus() {
@@ -148,7 +156,6 @@ class Main {
   }
 
   #onPlaying({ duration }) {
-    console.log('xxx')
     this.#duration = duration
     this.isLoading = false
   }
@@ -158,9 +165,9 @@ class Main {
   }
 
   #onError() {
-    if (this.#index >= this.#sources.length) {
-      console.log('播放视频失败')
-      alert('失败')
+    if (this.#index >= this.#sources.length - 1) {
+      this.isError = true
+      this.isLoading = false
       return
     }
     this.#instance.destroy()
@@ -194,6 +201,9 @@ class Main {
     this.#container.loading = createElement('loading', 'div', this.#warp)
     createElement('loading-icon', 'div', this.#container.loading)
 
+    this.#container.error = createElement('error', 'div', this.#warp)
+    createElement('error-icon', 'div', this.#container.error)
+
     this.#container.process.warp = createElement('process', 'div', this.#container.warp)
     this.#container.process.length = createElement('length', 'div', this.#container.process.warp)
     this.#container.process.markLength = createElement('markLength', 'div', this.#container.process.length)
@@ -208,6 +218,13 @@ class Main {
 
   #initContainerHandle() {
     const self = this
+
+    // 错误重试
+    this.#container.error.onclick = function (e) {
+      console.log(3333333)
+      self.replay()
+      e.stopPropagation()
+    }
 
     // 唤起控件盒子-open container
     this.#warp.onclick = function (e) {
@@ -295,6 +312,7 @@ class Main {
       console.log('x', x)
       self.#slideProcess(x)
     }, false)
+
   }
 
   #slideProcess(x, triggerStatus = false) {
@@ -307,6 +325,23 @@ class Main {
     Utils.debounce(() => {
       this.#instance.setCurrentTime(value)
     }, 200)
+  }
+
+  reinit() {
+    this.#index = 0
+    this.isError = false
+    this.isLoading = true
+    this.#instance.destroy()
+    this.#init()
+    this.#watch()
+  }
+
+  replay() {
+    this.#index = 0
+    this.isError = false
+    this.isLoading = true
+    this.#instance.destroy()
+    this.#createVideo(this.#sources[this.#index])
   }
 }
 
